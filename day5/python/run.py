@@ -31,38 +31,27 @@ class Map:
     source_start: list[int] = field(default_factory=list)
     destination_start: list[int] = field(default_factory=list)
     amount: list[int] = field(default_factory=list)
-    source_list: list[Range] = field(default_factory=list)
-    destination_list: list[Range] = field(default_factory=list)
+    # src_dest_dict: dict = field(default_factory=dict)
 
-    # def __post_init__(self):
-    #     self.create_range_lists()
+    # def create_range_dicts(self):
+    #     self.src_dest_dict = {}
+    #     for src_idx in range(len(self.source_start)):
+    #         for i_amount in range(self.amount[src_idx]):
+    #             src_number = self.source_start[src_idx] + i_amount
+    #             dest_number = self.destination_start[src_idx] + i_amount
+    #             self.src_dest_dict[src_number] = dest_number
 
-    def create_range_lists(self):
-        self.source_list = []
-        self.destination_list = []
-        for src_idx, i_src in enumerate(self.source_start):
-            self.source_list.append(
-                Range(
-                    start=i_src,
-                    stop=i_src + self.amount[src_idx]))
-            self.destination_list.append(
-                Range(
-                    start=self.destination_start[src_idx],
-                    stop=self.destination_start[src_idx] + self.amount[src_idx]))
-
-    @lru_cache
     def convert(self, a_number: int) -> int:
         a_number = int(a_number)
-        result = None
-        for src_idx, src_range in enumerate(self.source_list):
-            if src_range.start <= a_number <= src_range.stop:
-                src_difference = a_number - src_range.start
-                result = self.destination_list[src_idx].start + src_difference
-                break
 
-        if not result:
-            # if not mapped return it as is
-            result = a_number
+        # Map result to number in case its not set, implying its not 'mapped'
+        result = a_number
+        for src_idx, i_src in enumerate(self.source_start):
+            upper_src = i_src + self.amount[src_idx]
+            if i_src <= a_number <= upper_src:
+                difference = a_number - i_src
+                result = self.destination_start[src_idx] + difference
+                break
 
         print(f"Map ({self.name}) mapped '{a_number}' -> '{result}'!")
         return result
@@ -185,8 +174,8 @@ def part_2(the_data):
                     the_map = key_map
                     break
 
-    for a_map in keys_to_maps.values():
-        a_map.create_range_lists()
+    # for a_map in keys_to_maps.values():
+    #     a_map.create_range_dicts()
 
     lowest_location = 9999999999999999999999999999
     for i in range(len(seed_ranges)):
@@ -195,6 +184,7 @@ def part_2(the_data):
         else:
             for a_seed in list(range(int(seed_ranges[i]), int(seed_ranges[i]) + int(seed_ranges[i + 1]))):
                 print(f"A Seed is {a_seed}")
+                # print(keys_to_maps[key_ss])
                 a_soil = keys_to_maps[key_ss].convert(a_seed)
                 a_fert = keys_to_maps[key_sf].convert(a_soil)
                 a_water = keys_to_maps[key_fw].convert(a_fert)
